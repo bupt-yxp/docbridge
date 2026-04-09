@@ -25,6 +25,7 @@ classifiers = [
 ]
 dependencies = [
   "pdf2docx>=0.5.8,<0.6",
+  "tqdm>=4.66,<5",
   "click>=8.1,<9",
   "markdown>=3.5,<4",
   "beautifulsoup4>=4.12,<5",

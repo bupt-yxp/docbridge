@@ -59,6 +59,18 @@ docbridge convert --from md --to pdf x.md -o x.pdf
 
 **Markdown→DOCX**：`--md-backend` 为 `auto` | `python` | `pandoc`。
 
+### 扩展名与声明格式
+
+`convert_file` 会校验：源文件扩展名须与声明的**源格式**一致，输出路径扩展名须与**目标格式**一致（大小写不敏感）；缺少扩展名或后缀不符时会报错。
+
+| 格式 | 允许的后缀 |
+|------|------------|
+| `pdf` | `.pdf` |
+| `docx` | `.docx` |
+| `md` | `.md`、`.markdown`、`.mdown`、`.mkd` |
+
+若必须使用非标准扩展名，可在 API 中设置 `ConversionOptions(skip_extension_check=True)`。
+
 ## Python API
 
 ```python
