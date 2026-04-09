@@ -23,10 +23,6 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Office/Business",
 ]
-
-[project.urls]
-Repository = "https://github.com/bupt-yxp/docbridge"
-
 dependencies = [
   "pdf2docx>=0.5.8,<0.6",
   "click>=8.1,<9",
@@ -35,6 +31,9 @@ dependencies = [
   "python-docx>=1.1,<2",
   "pillow>=10,<12",
 ]
+
+[project.urls]
+Repository = "https://github.com/bupt-yxp/docbridge"
 
 [project.optional-dependencies]
 pdf = [
