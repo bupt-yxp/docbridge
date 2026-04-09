@@ -8,6 +8,7 @@ from pathlib import Path
 from pdf2docx import Converter as Pdf2DocxConverter
 
 from docbridge.base import ConversionOptions, Converter
+from docbridge.converters._pdf2docx_progress import pdf2docx_tqdm_logging
 from docbridge.converters.pdf_docx_postprocess import postprocess_pdf_docx
 from docbridge.exceptions import ConversionFailedError
 from docbridge.registry import register
@@ -59,13 +60,14 @@ class PdfToDocxConverter(Converter):
             raise ConversionFailedError(f"无法打开 PDF: {e}") from e
 
         try:
-            cv.convert(
-                str(target),
-                start=start,
-                end=end,
-                pages=pages,
-                **kwargs,
-            )
+            with pdf2docx_tqdm_logging():
+                cv.convert(
+                    str(target),
+                    start=start,
+                    end=end,
+                    pages=pages,
+                    **kwargs,
+                )
         except Exception as e:
             raise ConversionFailedError(f"转换失败: {e}") from e
         finally:

@@ -18,6 +18,10 @@ class ConversionOptions:
     page_indexes: list[int] | None = None
     ignore_page_error: bool = True
     multi_processing: bool = False
+    # 为 True 时输出第三方库（如 fontTools 子集化、WeasyPrint）的调试日志；默认 False 以免刷屏 tqdm
+    verbose: bool = False
+    # 为 True 时跳过 convert_file 对源/目标路径扩展名与格式的校验（非标准扩展名时使用）
+    skip_extension_check: bool = False
     # Markdown：md→docx 后端 auto=有 pandoc 则用之，否则 Python；md_resource_base 默认同源文件目录
     md_backend: str = "auto"
     md_resource_base: Path | None = None

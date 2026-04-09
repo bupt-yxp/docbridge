@@ -26,13 +26,19 @@ def _setup_logging(verbose: bool) -> None:
 
 @click.group(invoke_without_command=True)
 @click.version_option(__version__, prog_name="docbridge")
-@click.option("-v", "--verbose", is_flag=True, help="调试日志")
+@click.option("-v", "--verbose", is_flag=True, help="调试日志（含 fontTools/WeasyPrint 等第三方详细输出）")
 @click.pass_context
 def main(ctx: click.Context, verbose: bool) -> None:
     """DocBridge：文档格式转换（可扩展注册更多格式）。"""
+    ctx.ensure_object(dict)
+    ctx.obj["verbose"] = verbose
     _setup_logging(verbose)
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
+
+
+def _cli_verbose(ctx: click.Context) -> bool:
+    return bool(ctx.parent and ctx.parent.obj and ctx.parent.obj.get("verbose"))
 
 
 @main.command("list-formats")
@@ -91,7 +97,9 @@ def list_formats() -> None:
     default="auto",
     help="Markdown→DOCX 时：auto 优先 pandoc，否则 Python",
 )
+@click.pass_context
 def convert_cmd(
+    ctx: click.Context,
     input_file: Path,
     output_file: Path,
     source_fmt: str,
@@ -110,6 +118,7 @@ def convert_cmd(
         page_indexes = [int(p.strip()) for p in pages.split(",") if p.strip()]
 
     opts = ConversionOptions(
+        verbose=_cli_verbose(ctx),
         password=password,
         render_dpi=dpi,
         start_page=start_page,
@@ -154,7 +163,9 @@ def convert_cmd(
     default=None,
     help="pdf2docx 参数 float_image_ignorable_gap（默认 5）；可调以影响浮动图判定",
 )
+@click.pass_context
 def pdf2docx_cmd(
+    ctx: click.Context,
     input_pdf: Path,
     output: Path,
     password: str | None,
@@ -173,6 +184,7 @@ def pdf2docx_cmd(
     if pages:
         page_indexes = [int(p.strip()) for p in pages.split(",") if p.strip()]
     opts = ConversionOptions(
+        verbose=_cli_verbose(ctx),
         password=password,
         render_dpi=dpi,
         start_page=start_page,
@@ -201,9 +213,10 @@ def pdf2docx_cmd(
     default="auto",
     help="auto：有 pandoc 则用之；python：强制内置管线",
 )
-def md2docx_cmd(input_md: Path, output: Path, md_backend: str) -> None:
+@click.pass_context
+def md2docx_cmd(ctx: click.Context, input_md: Path, output: Path, md_backend: str) -> None:
     """Markdown → Word。"""
-    opts = ConversionOptions(md_backend=md_backend)
+    opts = ConversionOptions(verbose=_cli_verbose(ctx), md_backend=md_backend)
     try:
         convert_file(input_md, output, "md", "docx", opts)
     except (UnsupportedConversionError, ConversionFailedError) as e:
@@ -213,9 +226,10 @@ def md2docx_cmd(input_md: Path, output: Path, md_backend: str) -> None:
 @main.command("md2pdf")
 @click.argument("input_md", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("-o", "--output", type=click.Path(path_type=Path), required=True, help="输出 .pdf")
-def md2pdf_cmd(input_md: Path, output: Path) -> None:
+@click.pass_context
+def md2pdf_cmd(ctx: click.Context, input_md: Path, output: Path) -> None:
     """Markdown → PDF（需 pip install \"docbridge[pdf]\"，依赖 WeasyPrint）。"""
-    opts = ConversionOptions()
+    opts = ConversionOptions(verbose=_cli_verbose(ctx))
     try:
         convert_file(input_md, output, "md", "pdf", opts)
     except (UnsupportedConversionError, ConversionFailedError) as e:
