@@ -1,10 +1,7 @@
-"""Markdown → DOCX（Python 管线）。"""
-
 from __future__ import annotations
 
 from pathlib import Path
 
-import docbridge.converters  # noqa: F401
 from docbridge.base import ConversionOptions
 from docbridge.converters.md_docx import MdToDocxConverter
 

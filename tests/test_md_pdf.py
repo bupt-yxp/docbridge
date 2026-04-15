@@ -1,10 +1,7 @@
-"""Markdown → PDF（可选 WeasyPrint）。"""
-
 from __future__ import annotations
 
 import pytest
 
-import docbridge.converters  # noqa: F401
 from docbridge.base import ConversionOptions
 from docbridge.converters.md_pdf import MdToPdfConverter
 

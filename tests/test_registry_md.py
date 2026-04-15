@@ -1,8 +1,5 @@
-"""注册表：md 格式。"""
-
 from __future__ import annotations
 
-import docbridge.converters  # noqa: F401
 from docbridge import list_supported_pairs
 from docbridge.registry import get_converter
 

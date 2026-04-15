@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "docbridge"
 dynamic = ["version"]
-description = "可扩展的文档格式转换库与 CLI（PDF/MD→Word、MD→PDF 等）"
+description = "Extensible document conversion library and CLI (PDF/MD to Word, MD to PDF, etc.)"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
