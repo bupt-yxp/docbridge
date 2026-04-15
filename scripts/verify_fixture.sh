@@ -1,31 +1,30 @@
 #!/usr/bin/env bash
-# 验证：生成图片 → 生成 PDF → docbridge pdf2docx → 检查输出
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export PYTHONPATH="$ROOT/src:${PYTHONPATH:-}"
 
-echo "[1/4] 生成测试图片（需 Pillow）..."
+echo "[1/4] Generate fixture images (needs Pillow)..."
 if ! python3 scripts/generate_fixture_images.py; then
-  echo "跳过图片生成：请 pip install Pillow 后重试"
+  echo "Image generation failed; install Pillow: pip install Pillow"
   exit 1
 fi
 
-echo "[2/4] 生成 sample.pdf..."
+echo "[2/4] Build sample.pdf..."
 python3 scripts/build_sample_pdf.py
 
-echo "[3/4] PDF → DOCX..."
+echo "[3/4] PDF to DOCX..."
 OUT="$ROOT/fixtures/sample-out.docx"
 python3 -m docbridge.cli.main pdf2docx "$ROOT/fixtures/sample.pdf" -o "$OUT" --dpi 288
 
-echo "[4/4] 检查输出..."
+echo "[4/4] Check output..."
 if [[ ! -f "$OUT" ]]; then
-  echo "失败: 未生成 $OUT"
+  echo "Failed: missing $OUT"
   exit 1
 fi
 SZ=$(stat -c%s "$OUT" 2>/dev/null || stat -f%z "$OUT")
 if [[ "$SZ" -lt 2000 ]]; then
-  echo "警告: 输出文件过小 ($SZ bytes)，请人工检查"
+  echo "Warning: output very small ($SZ bytes); inspect manually"
 fi
-echo "成功: $OUT ($SZ bytes)"
-echo "可解压 docx 查看 word/media/ 下图片分辨率。"
+echo "OK: $OUT ($SZ bytes)"
+echo "Unzip the docx to inspect word/media/ image resolution."
