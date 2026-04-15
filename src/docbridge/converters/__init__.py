@@ -1,7 +1,6 @@
-"""具体转换器实现。导入本包以完成注册。"""
+from __future__ import annotations
 
-from docbridge.converters import (
-    md_docx,  # noqa: F401
-    md_pdf,  # noqa: F401
-    pdf_docx,  # noqa: F401
-)
+import importlib
+
+for _name in ("md_docx", "md_pdf", "pdf_docx"):
+    importlib.import_module(f"docbridge.converters.{_name}")

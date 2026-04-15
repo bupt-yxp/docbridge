@@ -1,5 +1,3 @@
-"""将 pdf2docx 内置的 logging 进度输出替换为 tqdm 进度条。"""
-
 from __future__ import annotations
 
 import logging
@@ -20,8 +18,6 @@ def _strip_ansi(s: str) -> str:
 
 
 class _Pdf2DocxProgressFilter(logging.Filter):
-    """阻止 pdf2docx 写入 stderr 的 INFO 进度行（由 tqdm 展示）。"""
-
     def filter(self, record: logging.LogRecord) -> bool:
         if record.name != "root":
             return True
@@ -40,8 +36,6 @@ class _Pdf2DocxProgressFilter(logging.Filter):
 
 
 class _Pdf2DocxTqdmHandler(logging.Handler):
-    """根据 pdf2docx 的 INFO 日志驱动 tqdm。"""
-
     def __init__(self) -> None:
         super().__init__(level=logging.INFO)
         self._pbar: tqdm | None = None
@@ -58,23 +52,23 @@ class _Pdf2DocxTqdmHandler(logging.Handler):
             if self._pbar is None:
                 self._pbar = tqdm(
                     total=2 * n,
-                    desc="PDF→DOCX · 解析页面",
-                    unit="页",
+                    desc="PDF→DOCX · pages",
+                    unit="pg",
                     file=sys.stderr,
                     dynamic_ncols=True,
                 )
             self._pbar.update(1)
-            self._pbar.set_postfix(当前页=page)
+            self._pbar.set_postfix(page=page)
             return
 
         pm = _PHASE_RE.search(msg)
         if pm and self._pbar is not None:
             phase = int(pm.group(1))
             names = {
-                1: "打开文档",
-                2: "分析版式",
-                3: "解析页面",
-                4: "生成 Word",
+                1: "open",
+                2: "layout",
+                3: "pages",
+                4: "word",
             }
             self._pbar.set_description(f"PDF→DOCX · {names.get(phase, str(phase))}", refresh=False)
             return
@@ -88,7 +82,6 @@ class _Pdf2DocxTqdmHandler(logging.Handler):
 
 @contextmanager
 def pdf2docx_tqdm_logging() -> Generator[None, None, None]:
-    """在 pdf2docx 转换期间启用 tqdm，并抑制其重复的文本进度行。"""
     root = logging.getLogger()
     tqdm_handler = _Pdf2DocxTqdmHandler()
     flt = _Pdf2DocxProgressFilter()

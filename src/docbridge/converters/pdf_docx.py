@@ -1,5 +1,3 @@
-"""PDF → DOCX，基于 pdf2docx（PyMuPDF + python-docx）。"""
-
 from __future__ import annotations
 
 import logging
@@ -17,20 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 def _dpi_to_clip_ratio(dpi: float) -> float:
-    """pdf2docx 使用 clip_image_res_ratio，基准为 72dpi。"""
     return max(dpi / 72.0, 0.1)
 
 
 @register("pdf", "docx")
 class PdfToDocxConverter(Converter):
-    """将 PDF 转为 Word；版式与图片尽量保留，受 PDF 与 docx 模型差异限制。"""
-
     def convert(self, source: Path, target: Path, options: ConversionOptions | None = None) -> None:
         opts = options or ConversionOptions()
         source = source.resolve()
         target = target.resolve()
         if not source.is_file():
-            raise ConversionFailedError(f"源文件不存在: {source}")
+            raise ConversionFailedError(f"Source file not found: {source}")
 
         target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -47,7 +42,7 @@ class PdfToDocxConverter(Converter):
         pages = opts.page_indexes
 
         logger.info(
-            "开始 PDF→DOCX: %s → %s (等效 clip_image_res_ratio=%.3f, 约 %.0f dpi)",
+            "PDF→DOCX: %s → %s (clip_image_res_ratio=%.3f, ~%.0f dpi)",
             source,
             target,
             kwargs["clip_image_res_ratio"],
@@ -57,7 +52,7 @@ class PdfToDocxConverter(Converter):
         try:
             cv = Pdf2DocxConverter(str(source), password=opts.password)
         except Exception as e:
-            raise ConversionFailedError(f"无法打开 PDF: {e}") from e
+            raise ConversionFailedError(f"Cannot open PDF: {e}") from e
 
         try:
             with pdf2docx_tqdm_logging():
@@ -69,12 +64,12 @@ class PdfToDocxConverter(Converter):
                     **kwargs,
                 )
         except Exception as e:
-            raise ConversionFailedError(f"转换失败: {e}") from e
+            raise ConversionFailedError(f"Conversion failed: {e}") from e
         finally:
             cv.close()
 
         if not target.is_file():
-            raise ConversionFailedError(f"未生成输出文件: {target}")
+            raise ConversionFailedError(f"Output file was not created: {target}")
 
         if opts.pdf_postprocess:
             try:
@@ -89,6 +84,6 @@ class PdfToDocxConverter(Converter):
                     clear_first_paragraph_space_before=opts.pdf_clear_first_paragraph_space_before,
                 )
             except Exception as e:
-                logger.warning("PDF→DOCX 后处理未完全成功（可关闭 pdf_postprocess）: %s", e)
+                logger.warning("PDF→DOCX postprocess incomplete (disable with pdf_postprocess=False): %s", e)
 
-        logger.info("完成: %s (%d bytes)", target, target.stat().st_size)
+        logger.info("Done: %s (%d bytes)", target, target.stat().st_size)

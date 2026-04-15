@@ -1,36 +1,25 @@
-"""
-Markdown 导出「单一事实来源」：md2pdf（WeasyPrint）与 md2docx（python-docx）共用同一套版式参数。
-
-与 CSS 对齐：A4、2cm 边距、正文字号/颜色、标题字号、图片 max-width:100%（按内容区宽度折算）。
-"""
-
 from __future__ import annotations
 
 from pathlib import Path
 
-# A4 210mm，左右各 2cm 边距 → 正文区域宽度（与 md2pdf 中 @page margin 一致）
 _PAGE_WIDTH_MM = 210.0
 _MARGIN_MM = 20.0
 CONTENT_WIDTH_MM = _PAGE_WIDTH_MM - 2 * _MARGIN_MM
 CONTENT_WIDTH_IN = CONTENT_WIDTH_MM / 25.4
 
-# 与 MARKDOWN_CSS 中 body / h* / code 一致
 BODY_PT = 11
 CODE_PT = 9
 HEADING_PT = {1: 20, 2: 16, 3: 13, 4: 12, 5: 11, 6: 11}
 TEXT_RGB = (0x22, 0x22, 0x22)
 LINE_HEIGHT = 1.45
 
-# 浏览器/WeasyPrint 对 img 的默认像素密度参考（与 max-width:100% 组合时的常见行为）
 REFERENCE_DPI = 96.0
 
-# 与 Word 侧 DOCX_FONT_PRIMARY 对齐：中文无衬线优先，避免 PDF 用 DejaVu、中文落到衬体
 FONT_STACK_CSS = (
     '"Microsoft YaHei", "Microsoft YaHei UI", "PingFang SC", '
     '"Noto Sans CJK SC", "Noto Sans", "DejaVu Sans", sans-serif'
 )
 
-# python-docx：主文与标题（eastAsia 与 ascii 一致）
 DOCX_FONT_PRIMARY = "Microsoft YaHei"
 DOCX_FONT_CODE = "Consolas"
 
@@ -76,10 +65,6 @@ img {{ max-width: 100%; height: auto; }}
 
 
 def image_display_size_inches(path: str | Path) -> tuple[float, float]:
-    """
-    模拟 CSS「width 按像素显示、且不超过内容区宽度」：先按 DPI 换算英寸，再宽度封顶 CONTENT_WIDTH_IN。
-    与 WeasyPrint 下 img{max-width:100%;height:auto} 在单列正文中的效果一致。
-    """
     p = Path(path)
     from PIL import Image
 
@@ -104,7 +89,6 @@ def image_display_size_inches(path: str | Path) -> tuple[float, float]:
 
 
 def image_display_size_inches_safe(path: str | Path) -> tuple[float, float]:
-    """同 image_display_size_inches，失败时退回保守占位尺寸。"""
     try:
         return image_display_size_inches(path)
     except Exception:
@@ -112,7 +96,6 @@ def image_display_size_inches_safe(path: str | Path) -> tuple[float, float]:
 
 
 def apply_a4_margins_2cm(document: object) -> None:
-    """与 WeasyPrint @page margin: 2cm 对齐；装订线 0；页眉/页脚距边界用常见默认，减少正文上方异常留白。"""
     from docx.shared import Cm
 
     for section in document.sections:

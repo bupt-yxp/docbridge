@@ -1,5 +1,3 @@
-"""Markdown → HTML（共用）。"""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,10 +22,9 @@ def markdown_to_html_fragment(md_text: str) -> str:
 
 
 def wrap_html_document(fragment: str, title: str = "") -> str:
-    """供 WeasyPrint 等需要完整 HTML 文档的场景。"""
     safe = title.replace("<", "").replace(">", "") if title else ""
     return (
-        '<!DOCTYPE html><html lang="zh-CN"><head>'
+        '<!DOCTYPE html><html lang="en"><head>'
         '<meta charset="utf-8"/>'
         f"<title>{safe}</title>"
         "</head><body>"

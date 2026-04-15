@@ -1,5 +1,3 @@
-"""HTML 片段（来自 Markdown）→ python-docx；版式与 md_theme / md2pdf 对齐。"""
-
 from __future__ import annotations
 
 import logging
@@ -28,7 +26,6 @@ _TEXT = RGBColor(*TEXT_RGB)
 
 
 def html_fragment_to_docx(html_fragment: str, base_dir: Path, document: Document | None = None) -> Document:
-    """将 Markdown 渲染出的 HTML 片段写入 Word（与 WeasyPrint 使用同一套 md_theme）。"""
     doc = document or Document()
     apply_a4_margins_2cm(doc)
 
@@ -47,7 +44,6 @@ def html_fragment_to_docx(html_fragment: str, base_dir: Path, document: Document
 
 
 def _add_theme_heading(doc: Document, text: str, level: int) -> None:
-    """不使用 Word 内置「标题」主题色（蓝），与 MARKDOWN_CSS 中 h* 一致：#222、粗体、分级字号。"""
     level = min(max(level, 1), 6)
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(10 if level <= 2 else 6)
@@ -62,7 +58,6 @@ def _add_theme_heading(doc: Document, text: str, level: int) -> None:
 
 
 def _finalize_body_runs(paragraph) -> None:
-    """正文段落：11pt、#222、行距；保留行内 code 的等宽与字号；跳过仅含图片的 run。"""
     paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
     paragraph.paragraph_format.line_spacing = LINE_HEIGHT
     for r in paragraph.runs:
@@ -249,13 +244,13 @@ def _add_inline_runs(paragraph, parent: Tag, base_dir: Path, bold: bool = False,
                     w_in, h_in = image_display_size_inches_safe(path)
                     paragraph.add_run().add_picture(str(path), width=Inches(w_in), height=Inches(h_in))
                 except Exception as e:
-                    logger.warning("插入图片失败 %s: %s", path, e)
-                    r = paragraph.add_run(f"[图片: {src}]")
+                    logger.warning("Image insert failed %s: %s", path, e)
+                    r = paragraph.add_run(f"[image: {src}]")
                     r.font.size = Pt(BODY_PT)
                     r.font.color.rgb = _TEXT
                     apply_docx_run_font(r)
             else:
-                r = paragraph.add_run(f"[图片: {src}]")
+                r = paragraph.add_run(f"[image: {src}]")
                 r.font.size = Pt(BODY_PT)
                 r.font.color.rgb = _TEXT
                 apply_docx_run_font(r)

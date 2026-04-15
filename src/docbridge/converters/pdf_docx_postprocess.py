@@ -1,10 +1,3 @@
-"""
-pdf2docx 生成结果的后处理：与 md_theme 对齐的页边距/字体，并将浮动图改为行内图以减轻叠压。
-
-pdf2docx 对「浮动」内容使用 wp:anchor + 页坐标，在 Word 中易与正文/表格叠压。
-将 wp:anchor 转为 wp:inline 后，图片随段落流动，与 PDF 绝对坐标不完全一致，但可避免典型错位。
-"""
-
 from __future__ import annotations
 
 import logging
@@ -24,12 +17,10 @@ logger = logging.getLogger(__name__)
 
 _W_DRAWING = qn("w:drawing")
 
-# DrawingML / WordprocessingML
 _WP_NS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
 _WP_ANCHOR = f"{{{_WP_NS}}}anchor"
 _WP_INLINE = f"{{{_WP_NS}}}inline"
 
-# anchor 内与坐标/环绕相关的子节点，行内图不需要
 _SKIP_ANCHOR_CHILD = frozenset(
     {
         "simplePos",
@@ -47,7 +38,6 @@ _INLINE_CHILD_ORDER = {"extent": 0, "effectExtent": 1, "docPr": 2, "cNvGraphicFr
 
 
 def _paragraph_has_drawing(p_element) -> bool:
-    """段落内是否含 w:drawing（python-docx 的 BaseOxmlElement.xpath 不支持 namespaces= 参数）。"""
     for node in p_element.iter():
         if node.tag == _W_DRAWING:
             return True
@@ -60,7 +50,6 @@ def _inline_child_sort_key(el) -> int:
 
 
 def _iter_document_parts(doc: Document):
-    """正文 + 各节页眉页脚（浮动图偶见）。"""
     yield doc.part
     seen = {id(doc.part)}
     for sec in doc.sections:
@@ -71,7 +60,6 @@ def _iter_document_parts(doc: Document):
 
 
 def _convert_one_anchor_to_inline(anchor) -> None:
-    """将单个 wp:anchor 替换为 wp:inline，保留 extent/docPr/graphic 等。"""
     parent = anchor.getparent()
     if parent is None:
         return
@@ -84,7 +72,7 @@ def _convert_one_anchor_to_inline(anchor) -> None:
         to_move.append(child)
     to_move.sort(key=_inline_child_sort_key)
     if not to_move:
-        logger.warning("跳过空 anchor（无非定位子节点）")
+        logger.warning("Skipping empty anchor (no positionable children)")
         return
 
     nsmap = anchor.nsmap
@@ -113,9 +101,9 @@ def _convert_all_anchors_to_inline(doc: Document) -> int:
                 _convert_one_anchor_to_inline(anchor)
                 n += 1
             except Exception as e:
-                logger.warning("anchor→inline 失败（已跳过该图）: %s", e)
+                logger.warning("anchor→inline failed (image skipped): %s", e)
     if n:
-        logger.info("已将 %d 个 wp:anchor 转为 wp:inline（行内图，随段落排版）", n)
+        logger.info("Converted %d wp:anchor to wp:inline", n)
     return n
 
 
@@ -136,7 +124,6 @@ def _iter_paragraphs(doc: Document):
 
 
 def _apply_cjk_autospace_off(paragraph) -> None:
-    """关闭中西文间自动间距，减少异常断行。"""
     p = paragraph._p
     p_pr = p.get_or_add_pPr()
     if p_pr.find(qn("w:autoSpaceDE")) is None:
@@ -165,7 +152,6 @@ def _normalize_text_runs(paragraph) -> None:
 
 
 def _strip_leading_empty_paragraphs(doc: Document) -> int:
-    """删除 document.body 开头的空段落（pdf2docx 常产生首行空行）。"""
     body = doc.element.body
     removed = 0
     while len(body) > 0:
@@ -178,12 +164,11 @@ def _strip_leading_empty_paragraphs(doc: Document) -> int:
         body.remove(el)
         removed += 1
     if removed:
-        logger.info("已删除正文开头 %d 个空段落", removed)
+        logger.info("Removed %d leading empty paragraphs", removed)
     return removed
 
 
 def _clear_first_paragraph_space_before(doc: Document) -> None:
-    """首个正文段落段前距置 0，避免标题/首行上方额外留白。"""
     body = doc.element.body
     for el in body:
         if el.tag != qn("w:p"):
@@ -195,14 +180,13 @@ def _clear_first_paragraph_space_before(doc: Document) -> None:
 
 
 def _patch_floating_anchors_allow_overlap(doc: Document) -> int:
-    """仅将 allowOverlap 置 0（不改为 inline 时的弱补救）。"""
     n = 0
     for part in _iter_document_parts(doc):
         for el in part.element.iter(_WP_ANCHOR):
             el.set("allowOverlap", "0")
             n += 1
     if n:
-        logger.info("已调整 %d 个浮动图 anchor（allowOverlap=0）", n)
+        logger.info("Set allowOverlap=0 on %d floating anchors", n)
     return n
 
 
@@ -210,7 +194,7 @@ def postprocess_pdf_docx(
     path: Path,
     *,
     normalize_fonts: bool = True,
-    match_margins: bool = True,
+    match_margins: bool = False,
     cjk_autospace_fix: bool = True,
     convert_float_images_to_inline: bool = True,
     patch_floating_anchors: bool = False,
