@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from docbridge.converters.md_math import substitute_tex_delimiters
+
 
 def read_markdown(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -10,6 +12,7 @@ def read_markdown(path: Path) -> str:
 def markdown_to_html_fragment(md_text: str) -> str:
     import markdown
 
+    md_text = substitute_tex_delimiters(md_text)
     return markdown.markdown(
         md_text,
         extensions=[

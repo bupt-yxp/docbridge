@@ -23,7 +23,7 @@ def _pandoc_md_to_docx(source: Path, target: Path, resource_dir: Path) -> None:
         str(source.resolve()),
         "-o",
         str(target.resolve()),
-        "--from=markdown",
+        "--from=markdown+tex_math_dollars",
         "--to=docx",
         f"--resource-path={resource_dir.resolve()}",
     ]

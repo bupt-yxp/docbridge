@@ -9,6 +9,7 @@ from docbridge.converters.md_common import (
     read_markdown,
     wrap_html_document,
 )
+from docbridge.converters.md_math import expand_math_tags_for_pdf
 from docbridge.converters.md_theme import MARKDOWN_CSS
 from docbridge.exceptions import ConversionFailedError
 from docbridge.registry import register
@@ -37,6 +38,7 @@ class MdToPdfConverter(Converter):
 
         md_text = read_markdown(source)
         fragment = markdown_to_html_fragment(md_text)
+        fragment = expand_math_tags_for_pdf(fragment)
         full_html = wrap_html_document(fragment, title=source.stem)
 
         target.parent.mkdir(parents=True, exist_ok=True)

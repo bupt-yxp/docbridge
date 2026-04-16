@@ -61,6 +61,20 @@ th, td {{ border: 1px solid #999; padding: 4px 8px; color: #222; }}
 pre {{ background: #f5f5f5; padding: 8px; font-size: 9pt; font-family: {FONT_STACK_CSS}; }}
 code {{ font-family: "DejaVu Sans Mono", "Consolas", monospace; font-size: 9pt; }}
 img {{ max-width: 100%; height: auto; }}
+.docbridge-math-svg-display {{
+  text-align: center;
+  margin: 0.55em 0;
+}}
+.docbridge-math-svg-inline {{
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 0.12em;
+}}
+.docbridge-math-svg-inline svg,
+.docbridge-math-svg-display svg {{
+  max-width: 100%;
+  height: auto;
+}}
 """
 
 

@@ -10,6 +10,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 from docbridge.converters.md_common import resolve_resource_path
 from docbridge.converters.md_docx_fonts import apply_docx_code_font, apply_docx_run_font
+from docbridge.converters.md_math import append_omml_to_paragraph, decode_latex_data_attr
 from docbridge.converters.md_theme import (
     BODY_PT,
     CODE_PT,
@@ -125,7 +126,30 @@ def _element_to_docx(node: Tag | NavigableString, doc: Document, base_dir: Path,
         _finalize_body_runs(p)
         return
 
-    if name in {"div", "section"}:
+    if name == "div":
+        classes = node.get("class") or []
+        cl = classes if isinstance(classes, list) else str(classes).split()
+        if "docbridge-math" in cl and "docbridge-math-display" in cl:
+            b64 = node.get("data-latex")
+            if b64:
+                p = doc.add_paragraph()
+                try:
+                    latex = decode_latex_data_attr(b64)
+                    append_omml_to_paragraph(p, latex, display=True)
+                except Exception as e:
+                    logger.warning("Display math in DOCX failed: %s", e)
+                    try:
+                        lt = decode_latex_data_attr(b64)
+                    except Exception:
+                        lt = b64[:48]
+                    r = p.add_run(lt)
+                    apply_docx_run_font(r)
+            return
+        for sub in node.children:
+            _element_to_docx(sub, doc, base_dir, list_level)
+        return
+
+    if name == "section":
         for sub in node.children:
             _element_to_docx(sub, doc, base_dir, list_level)
         return
@@ -236,6 +260,44 @@ def _add_inline_runs(paragraph, parent: Tag, base_dir: Path, bold: bool = False,
             r.bold, r.italic = bold, italic
         elif tag == "br":
             paragraph.add_run().add_break()
+        elif tag == "span":
+            classes = child.get("class") or []
+            cl = classes if isinstance(classes, list) else str(classes).split()
+            if "docbridge-math" in cl and "docbridge-math-inline" in cl:
+                b64 = child.get("data-latex")
+                if b64:
+                    try:
+                        latex = decode_latex_data_attr(b64)
+                        append_omml_to_paragraph(paragraph, latex, display=False)
+                    except Exception as e:
+                        logger.warning("Inline math in DOCX failed: %s", e)
+                        try:
+                            lt = decode_latex_data_attr(b64)
+                        except Exception:
+                            lt = "?"
+                        r = paragraph.add_run(f"${lt}$")
+                        r.bold, r.italic = bold, italic
+                continue
+            _add_inline_runs(paragraph, child, base_dir, bold, italic)
+        elif tag == "div":
+            classes = child.get("class") or []
+            cl = classes if isinstance(classes, list) else str(classes).split()
+            if "docbridge-math" in cl and "docbridge-math-display" in cl:
+                b64 = child.get("data-latex")
+                if b64:
+                    try:
+                        latex = decode_latex_data_attr(b64)
+                        append_omml_to_paragraph(paragraph, latex, display=True)
+                    except Exception as e:
+                        logger.warning("Display math (inline ctx) in DOCX failed: %s", e)
+                        try:
+                            lt = decode_latex_data_attr(b64)
+                        except Exception:
+                            lt = "?"
+                        r = paragraph.add_run(f"$$ {lt} $$")
+                        r.bold, r.italic = bold, italic
+                continue
+            _add_inline_runs(paragraph, child, base_dir, bold, italic)
         elif tag == "img":
             src = child.get("src")
             path = resolve_resource_path(base_dir, src)
