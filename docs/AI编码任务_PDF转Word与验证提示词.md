@@ -19,7 +19,7 @@
 - 不要编造「已完美还原」；对无法保留的元素列出已知限制
 
 交付物：
-1. 可执行脚本或小型 CLI（例如 pdf2docx --input a.pdf --output b.docx [--dpi 300]）
+1. 可执行脚本或小型 CLI（例如 `docbridge convert --from pdf --to docx a.pdf -o b.docx [--dpi 300]`）
 2. 依赖与安装说明
 3. 「验证方案」一节对应的自动化或半自动化步骤（见下文用户提供的 MD 样例）
 

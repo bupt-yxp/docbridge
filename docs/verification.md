@@ -4,6 +4,7 @@
 
 - **PDF→Word**：`pdf2docx`（MIT），底层 **PyMuPDF** + **python-docx**。
 - **Markdown→Word**：`markdown`、`beautifulsoup4`、`python-docx`；可选系统 **pandoc**（`--md-backend pandoc` / `auto` 检测）。
+- **Word→Markdown**：系统 **pandoc**（`docx` → `markdown+tex_math_dollars`，公式 OMML→LaTeX）。
 - **Markdown→PDF**：可选 `weasyprint`（`pip install -e ".[pdf]"`）。
 - 固定版本见项目根目录 `pyproject.toml`。
 
@@ -21,24 +22,24 @@ bash scripts/verify_fixture.sh
 
 1. 生成 `fixtures/test-diagram.png` 与 `fixtures/test-photo.jpg`
 2. 用 `scripts/build_sample_pdf.py` 生成 `fixtures/sample.pdf`（**不依赖 pandoc**）
-3. 调用 `docbridge pdf2docx` 生成 `fixtures/sample-out.docx`
+3. 调用 `docbridge convert --from pdf --to docx` 生成 `fixtures/sample-out.docx`
 4. 检查输出文件大小
 
-## Markdown 内置命令（本仓库）
+## Markdown 转换示例（本仓库）
 
 ```bash
 pip install -e ".[pdf]"   # md→pdf 需要
-docbridge md2docx fixtures/sample.md -o /tmp/sample-md.docx --md-backend python
-docbridge md2pdf fixtures/sample.md -o /tmp/sample-md.pdf
+docbridge convert --from md --to docx fixtures/sample.md -o /tmp/sample-md.docx --md-backend python
+docbridge convert --from md --to pdf fixtures/sample.md -o /tmp/sample-md.pdf
 ```
 
 ## MD → PDF → Word（外链链路，仍可用）
 
-1. 用任意工具将 `fixtures/sample.md` 转为 PDF，或直接用本仓库 `docbridge md2pdf`。
+1. 用任意工具将 `fixtures/sample.md` 转为 PDF，或直接用本仓库 `docbridge convert --from md --to pdf`。
 2. 再执行：
 
    ```bash
-   docbridge pdf2docx your.pdf -o out.docx --dpi 288
+   docbridge convert --from pdf --to docx your.pdf -o out.docx --dpi 288
    ```
 
 ## 验收清单（人工）
