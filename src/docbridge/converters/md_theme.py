@@ -67,13 +67,21 @@ img {{ max-width: 100%; height: auto; }}
 }}
 .docbridge-math-svg-inline {{
   display: inline-block;
-  vertical-align: middle;
-  margin: 0 0.12em;
+  vertical-align: -0.22em;
+  line-height: 0;
+  margin: 0 0.08em;
 }}
 .docbridge-math-svg-inline svg,
 .docbridge-math-svg-display svg {{
   max-width: 100%;
   height: auto;
+  display: block;
+}}
+.docbridge-math-fallback {{
+  font-family: "DejaVu Sans Mono", "Consolas", monospace;
+  font-size: 10pt;
+  white-space: pre-wrap;
+  color: #222;
 }}
 """
 
