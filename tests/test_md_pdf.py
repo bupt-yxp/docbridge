@@ -11,6 +11,6 @@ def test_md_to_pdf_weasyprint(tmp_path):
     md = tmp_path / "t.md"
     md.write_text("# H\n\nHello **world**.\n", encoding="utf-8")
     out = tmp_path / "t.pdf"
-    MdToPdfConverter().convert(md, out, ConversionOptions())
+    MdToPdfConverter().convert(md, out, ConversionOptions(md_pdf_backend="weasyprint"))
     assert out.is_file()
     assert out.stat().st_size > 100

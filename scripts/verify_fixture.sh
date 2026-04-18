@@ -15,7 +15,7 @@ python3 scripts/build_sample_pdf.py
 
 echo "[3/4] PDF to DOCX..."
 OUT="$ROOT/fixtures/sample-out.docx"
-python3 -m docbridge.cli.main pdf2docx "$ROOT/fixtures/sample.pdf" -o "$OUT" --dpi 288
+python3 -m docbridge.cli.main convert --from pdf --to docx "$ROOT/fixtures/sample.pdf" -o "$OUT" --dpi 288
 
 echo "[4/4] Check output..."
 if [[ ! -f "$OUT" ]]; then

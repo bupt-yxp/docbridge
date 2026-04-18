@@ -9,3 +9,10 @@ def test_pdf_docx_registered() -> None:
     assert ("pdf", "docx") in pairs
     cls = get_converter("pdf", "docx")
     assert cls.__name__ == "PdfToDocxConverter"
+
+
+def test_docx_pdf_registered() -> None:
+    pairs = list_supported_pairs()
+    assert ("docx", "pdf") in pairs
+    cls = get_converter("docx", "pdf")
+    assert cls.__name__ == "DocxToPdfConverter"
